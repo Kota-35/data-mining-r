@@ -1,0 +1,211 @@
+> glove <- Aozora("https://www.aozora.gr.jp/cards/000035/files/301_ruby_5915.zip")
+example: folder_name <- Aozora('http://www.aozora.gr.jp/cards/000081/files/462_ruby_716.zip')
+
+
+trying URL 'https://www.aozora.gr.jp/cards/000035/files/301_ruby_5915.zip'
+Content type 'application/zip' length 68596 bytes (66 KB)
+downloaded 66 KB
+
+> glove.freq <- RMeCabFreq(glove)
+file = ./NORUBY/ningen_shikkaku2.txt 
+length = 4958 
+> print(head(glove.freq))
+        Term    Info1 Info2 Freq
+1         あ フィラー     *    5
+2       あの フィラー     *    3
+3         え フィラー     *    2
+4       えと フィラー     *    1
+5 あくまでも     副詞  一般    1
+6   あたかも     副詞  一般    1
+> # 名詞と動詞の抽出
+> glove.freq2 <- subset(glove.freq, Info1 %in% c("名詞", "動詞"))
+> # 数，非自立，接尾の除外
+> glove.freq3 <- subset(glove.freq2, !Info2 %in% c("数", "非自立", "接尾"))
+> print(head(glove.freq3)) 
+          Term Info1 Info2 Freq
+497   ああなる  動詞  自立    1
+498     あおる  動詞  自立    1
+499     あがる  動詞  自立    2
+500 あきらめる  動詞  自立    3
+501     あきる  動詞  自立    1
+502       あく  動詞  自立    3
+> 
+> # 単語を出現頻度順にソート
+> glove.freq4 <- glove.freq3[order(glove.freq3$Freq, decreasing = TRUE),]
+> print(head(glove.freq4))
+     Term Info1  Info2 Freq
+3543 自分  名詞   一般  759
+644  する  動詞   自立  641
+3895 それ  名詞 代名詞  227
+708  なる  動詞   自立  219
+519  ある  動詞   自立  157
+1359 言う  動詞   自立  145
+> 
+> set.seed(50)
+> wordcloud(
++   glove.freq4$Term,
++   glove.freq4$Freq,
++   min.freq = 4, # 最低頻度は4 
++   color = c(
++     "purple", 
++     "blue",
++     "green", 
++     "orange",
++     "pink", 
++     "red"
++   )
++ )
+> # 共起ネットワーク
+> # Nグラム解析の実行例
+> glove.ngram <- NgramDF(
++   glove, 
++   type = 1, 
++   pos = c("名詞"),
++   N = 2
++ )
+file = ./NORUBY/ningen_shikkaku2.txt Ngram = 2 
+> print(head(glove.ngram))
+      Ngram1 Ngram2 Freq
+1     あいそ かわり    1
+2     あいそ   笑い    1
+3     あいだ   いま    1
+4     あいだ     恋    1
+5     あいつ     私    1
+6 あからさま 言い方    1
+> 
+> glove.ngram2 <- glove.ngram[order(glove.ngram$Freq, decreasing = TRUE),]
+> print(head(glove.ngram2))
+     Ngram1 Ngram2 Freq
+1424     の   自分   94
+5881     所     謂   34
+3168     事     の   33
+878    それ   自分   24
+8094   自分   それ   24
+1231     の   それ   23
+> 
+> # 共起ネットワークの作成
+> glove.ngram2 <- subset(glove.ngram2, Freq >= 3)
+> glove.graph <- graph.data.frame(glove.ngram2)
+> plot(
++   glove.graph, 
++   vertex.label = V(glove.graph)$name,
++   vertex.size = 15
++ )
+> glove.freq <- RMeCabFreq(glove)
+file = ./NORUBY/ningen_shikkaku2.txt 
+length = 4958 
+> print(head(glove.freq))
+        Term    Info1 Info2 Freq
+1         あ フィラー     *    5
+2       あの フィラー     *    3
+3         え フィラー     *    2
+4       えと フィラー     *    1
+5 あくまでも     副詞  一般    1
+6   あたかも     副詞  一般    1
+> # 名詞と動詞の抽出
+> glove.freq2 <- subset(glove.freq, Info1 %in% c("名詞", "動詞"))
+> # 数，非自立，接尾の除外
+> glove.freq3 <- subset(glove.freq2, !Info2 %in% c("数", "非自立", "接尾"))
+> print(head(glove.freq3)) 
+          Term Info1 Info2 Freq
+497   ああなる  動詞  自立    1
+498     あおる  動詞  自立    1
+499     あがる  動詞  自立    2
+500 あきらめる  動詞  自立    3
+501     あきる  動詞  自立    1
+502       あく  動詞  自立    3
+> 
+> # 単語を出現頻度順にソート
+> glove.freq4 <- glove.freq3[order(glove.freq3$Freq, decreasing = TRUE),]
+> print(head(glove.freq4))
+     Term Info1  Info2 Freq
+3543 自分  名詞   一般  759
+644  する  動詞   自立  641
+3895 それ  名詞 代名詞  227
+708  なる  動詞   自立  219
+519  ある  動詞   自立  157
+1359 言う  動詞   自立  145
+> 
+> set.seed(50)
+> wordcloud(
++   glove.freq4$Term,
++   glove.freq4$Freq,
++   min.freq = 6, # 最低頻度は4 
++   color = c(
++     "purple", 
++     "blue",
++     "green", 
++     "orange",
++     "pink", 
++     "red"
++   )
++ )
+> set.seed(50)
+> wordcloud(
++   glove.freq4$Term,
++   glove.freq4$Freq,
++   min.freq = 10, # 最低頻度は4 
++   color = c(
++     "purple", 
++     "blue",
++     "green", 
++     "orange",
++     "pink", 
++     "red"
++   )
++ )
+> set.seed(50)
+> wordcloud(
++   glove.freq4$Term,
++   glove.freq4$Freq,
++   min.freq = 5, # 最低頻度は4 
++   color = c(
++     "purple", 
++     "blue",
++     "green", 
++     "orange",
++     "pink", 
++     "red"
++   )
++ )
+> set.seed(50)
+> wordcloud(
++   glove.freq4$Term,
++   glove.freq4$Freq,
++   min.freq = 8, # 最低頻度は4 
++   color = c(
++     "purple", 
++     "blue",
++     "green", 
++     "orange",
++     "pink", 
++     "red"
++   )
++ )
+> # 共起ネットワーク
+> # Nグラム解析の実行例
+> glove.ngram <- NgramDF(
++   glove, 
++   type = 1, 
++   pos = c("名詞"),
++   N = 2
++ )
+file = ./NORUBY/ningen_shikkaku2.txt Ngram = 2 
+> print(head(glove.ngram))
+      Ngram1 Ngram2 Freq
+1     あいそ かわり    1
+2     あいそ   笑い    1
+3     あいだ   いま    1
+4     あいだ     恋    1
+5     あいつ     私    1
+6 あからさま 言い方    1
+> 
+> glove.ngram2 <- glove.ngram[order(glove.ngram$Freq, decreasing = TRUE),]
+> print(head(glove.ngram2))
+     Ngram1 Ngram2 Freq
+1424     の   自分   94
+5881     所     謂   34
+3168     事     の   33
+878    それ   自分   24
+8094   自分   それ   24
+1231     の   それ   23
