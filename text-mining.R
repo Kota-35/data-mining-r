@@ -15,7 +15,7 @@ library(igraph)
 # 青空文庫を読み込む関数Aozora
 source("https://rmecab.jp/R/Aozora.R")
 
-glove <- Aozora("https://www.aozora.gr.jp/cards/000121/files/637_ruby_4095.zip")
+glove <- Aozora("https://www.aozora.gr.jp/cards/000035/files/301_ruby_5915.zip")
 glove.freq <- RMeCabFreq(glove)
 print(head(glove.freq))
 # 名詞と動詞の抽出
@@ -32,7 +32,7 @@ set.seed(50)
 wordcloud(
   glove.freq4$Term,
   glove.freq4$Freq,
-  min.freq = 4, # 最低頻度は4 
+  min.freq = 8, # 最低頻度は8
   color = c(
     "purple", 
     "blue",
