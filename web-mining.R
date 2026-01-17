@@ -3,7 +3,7 @@ install.packages("rvest")
 
 library(rvest)
 
-web.data <- read_html("https://www.shinshu-u.ac.jp/")
+web.data <- read_html("https://ja.wikipedia.org/wiki/BUMP_OF_CHICKEN")
 # ウェブページのリンク情報を取得
 media.link <- html_nodes(web.data, "a")
 print(head(media.link))
@@ -64,7 +64,7 @@ set.seed(30)
 wordcloud(
   media.freq4$Term, 
   media.freq4$Freq,
-  min.freq = 20,
+  min.freq = 10,
   scale = c(2,.3), 
   color = c(
     "purple", 
@@ -95,7 +95,7 @@ media.ngram2 <- media.ngram[
 print(head(media.ngram2))
 
 # 共起ネットワークによる可視化
-media.ngram2 <- subset(media.ngram2, Freq >= 10)
+media.ngram2 <- subset(media.ngram2, Freq >= 8)
 
 library(igraph)
 media.graph <- graph.data.frame(media.ngram2)
@@ -103,6 +103,6 @@ media.graph <- graph.data.frame(media.ngram2)
 plot(
   media.graph, 
   vertex.label = V(media.graph)$name,
-  vertex.size = 25
+  vertex.size = 15
 )
 

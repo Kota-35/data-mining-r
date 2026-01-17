@@ -1,0 +1,162 @@
+> library(rvest)
+> 
+> web.data <- read_html("https://ja.wikipedia.org/wiki/BUMP_OF_CHICKEN")
+> # ウェブページのリンク情報を取得
+> media.link <- html_nodes(web.data, "a")
+> print(head(media.link))
+{xml_nodeset (6)}
+[1] <a class="mw-jump-link" href="#bodyContent">コンテンツにスキップ</a>
+[2] <a href="/wiki/%E3%83%A1%E3%82%A4%E3%83%B3%E3%83%9A%E3%83%BC%E3 ...
+[3] <a href="/wiki/Wikipedia:%E3%82%B3%E3%83%9F%E3%83%A5%E3%83%8B%E ...
+[4] <a href="/wiki/Portal:%E6%9C%80%E8%BF%91%E3%81%AE%E5%87%BA%E6%9 ...
+[5] <a href="/wiki/%E7%89%B9%E5%88%A5:%E6%96%B0%E3%81%97%E3%81%84%E ...
+[6] <a href="/wiki/%E7%89%B9%E5%88%A5:%E6%9C%80%E8%BF%91%E3%81%AE%E ...
+> 
+> # リンクタグのテキスト情報を抽出
+> media.text <- html_text(media.link)
+> print(head(media.text))
+[1] "コンテンツにスキップ"   "メインページ"          
+[3] "コミュニティ・ポータル" "最近の出来事"          
+[5] "新しいページ"           "最近の更新"            
+> 
+> # リンクタグのテキスト情報を抽出
+> print(head(media.text))
+[1] "コンテンツにスキップ"   "メインページ"          
+[3] "コミュニティ・ポータル" "最近の出来事"          
+[5] "新しいページ"           "最近の更新"            
+> 
+> # テキスト情報のデータフレーム化
+> # htmlから抽出したテキストデータは
+> # UTF-8でエンコードされているので，
+> # RMeCabで解析できる（エンコードの変換は必要なし）
+> media <- as.data.frame(media.text)
+> 
+> # テキスト情報をファイル出力
+> # 手動で作業用ディレクトリに"web"という名前のディレクトリを作成
+> write.table(
++   media, 
++   "./web/link.txt", 
++   row.names = FALSE, 
++   col.names = FALSE, 
++   quote = FALSE
++ )
+> 
+> # リンクテキストにおける単語の出現頻度の解析
+> library(RMeCab)
+> media.freq <- RMeCabFreq("./web/link.txt")
+file = ./web/link.txt 
+length = 2297 
+> print(head(media.freq)) 
+      Term    Info1 Info2 Freq
+1       あ フィラー     *    4
+2       と フィラー     *    1
+3       ま フィラー     *    6
+4     たま     副詞  一般    2
+5     よし     副詞  一般    3
+6 オンリー     副詞  一般    4
+> 
+> # 名詞と動詞の抽出
+> media.freq2 <- subset(
++   media.freq, 
++   Info1 %in% c("名詞", "動詞")
++ )
+> print(head(media.freq2)) 
+       Term Info1 Info2 Freq
+59     せる  動詞  接尾    2
+60     れる  動詞  接尾    9
+61     ある  動詞  自立    2
+62     いく  動詞  自立    3
+63     かる  動詞  自立    3
+64 くださる  動詞  自立    1
+> 
+> # 数，非自立，接尾の除外
+> media.freq3 <- subset(
++   media.freq2, 
++   !Info2 %in% c("数", "非自立", "接尾")
++ )
+> print(head(media.freq3)) 
+       Term Info1 Info2 Freq
+61     ある  動詞  自立    2
+62     いく  動詞  自立    3
+63     かる  動詞  自立    3
+64 くださる  動詞  自立    1
+65     くる  動詞  自立    1
+66   こもる  動詞  自立    1
+> 
+> # 単語を出現頻度順にソート
+> media.freq4 <- media.freq3[
++   order(
++     media.freq3$Freq,
++     decreasing = TRUE
++   ), ]
+> print(head(media.freq4))
+        Term Info1    Info2 Freq
+146        [  名詞 サ変接続  237
+147        ]  名詞 サ変接続  237
+423       OF  名詞     一般  216
+1170    BUMP  名詞 固有名詞  214
+148        ^  名詞 サ変接続  199
+340  CHICKEN  名詞     一般  190
+> 
+> # ワードクラウドによる可視化
+> library(wordcloud) 
+> set.seed(30)
+> wordcloud(
++   media.freq4$Term, 
++   media.freq4$Freq,
++   min.freq = 10,
++   scale = c(2,.3), 
++   color = c(
++     "purple", 
++     "blue",
++     "green", 
++     "orange",
++     "pink", 
++     "red"
++     )
++ )
+> 
+> 
+> # 共起ネットワークによる可視化
+> media.ngram <- NgramDF(
++   "./web/link.txt", 
++   type = 1,
++   pos = c("名詞"), 
++   N = 2
++ )
+file = ./web/link.txt Ngram = 2 
+> print(head(media.ngram))
+  Ngram1    Ngram2 Freq
+1      !         /    1
+2      !    Aqours    1
+3      !      BUMP    1
+4      ! Butterfly    1
+5      !        FM    1
+6      !     GIRLS    1
+> 
+> # 出現頻度でソート
+> media.ngram2 <- media.ngram[
++   order(
++     media.ngram$Freq,
++     decreasing = TRUE
++   ), ]
+> print(head(media.ngram2))
+      Ngram1  Ngram2 Freq
+753     BUMP      OF  206
+1227      OF CHICKEN  203
+1864       ^    BUMP  119
+1761       ]       [   47
+2026   https     ://   28
+832  CHICKEN    TOUR   23
+> 
+> # 共起ネットワークによる可視化
+> media.ngram2 <- subset(media.ngram2, Freq >= 8)
+> 
+> library(igraph)
+> media.graph <- graph.data.frame(media.ngram2)
+> # バイグラムの出現頻度の高いもの(10以上)を指定
+> plot(
++   media.graph, 
++   vertex.label = V(media.graph)$name,
++   vertex.size = 15
++ )
