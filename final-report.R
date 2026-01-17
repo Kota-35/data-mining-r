@@ -1,10 +1,10 @@
-# install.packages(c("MASS","class","rpart","rpart.plot","e1071","pROC"))
+# install.packages(c("MASS","class","rpart","rpart.plot","kernlab","pROC"))
 
 library(MASS)       # Pima.tr / Pima.te
 library(class)      # k-NN
 library(rpart)      # decision tree
 library(rpart.plot) # tree plot
-library(e1071)      # SVM
+library(kernlab)      # SVM
 library(pROC)       # ROC/AUC
 
 set.seed(42)
@@ -197,24 +197,34 @@ rpart.plot(tree_pruned, main = "Decision Tree (pruned)")
 # =========================
 # 5) SVM
 # =========================
-# SVMも標準化した入力を使用
+# SVMも標準化した入力を使用（train_z/test_z を使う）
 svm_train <- cbind(train_z, type = train$type)
 svm_test  <- cbind(test_z,  type = test$type)
 
-svm_fit <- svm(
+# kernlab::ksvm
+# prob.model=TRUE を付けると確率が取れる
+svm_fit <- ksvm(
   type ~ .,
   data = svm_train,
-  kernel = "radial",
-  cost = 1,
-  gamma = 1 / ncol(train_z),
-  probability = TRUE
+  type = "C-svc",
+  kernel = "rbfdot",
+  C = 1,
+  prob.model = TRUE
 )
 
-svm_pred <- predict(svm_fit, newdata = svm_test, probability = TRUE)
+# 予測クラス
+svm_pred <- predict(svm_fit, newdata = svm_test[, x_cols], type = "response")
 results$svm <- eval_binary(test$type, svm_pred)
 
+# 確率（ROC/AUC 用）
+# predict(..., type="probabilities") でクラスごとの確率行列が返る
+svm_prob_mat <- predict(svm_fit, newdata = svm_test[, x_cols], type = "probabilities")
+
+# 「陽性クラス」を results の定義と合わせる（levels(train$type)[2] を陽性扱い）
+pos_class <- levels(train$type)[2]
+svm_prob <- svm_prob_mat[, pos_class]
+
 # ROC/AUC
-svm_prob <- attr(svm_pred, "probabilities")[, levels(train$type)[2]]
 svm_roc <- eval_roc(test$type, svm_prob)
 results$svm$auc <- svm_roc$auc
 

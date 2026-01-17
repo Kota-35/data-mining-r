@@ -2,7 +2,7 @@
 > library(class)      # k-NN
 > library(rpart)      # decision tree
 > library(rpart.plot) # tree plot
-> library(e1071)      # SVM
+> library(kernlab)      # SVM
 > library(pROC)       # ROC/AUC
 > 
 > set.seed(42)
@@ -382,24 +382,34 @@ n= 200
 > # =========================
 > # 5) SVM
 > # =========================
-> # SVMも標準化した入力を使用
+> # SVMも標準化した入力を使用（train_z/test_z を使う）
 > svm_train <- cbind(train_z, type = train$type)
 > svm_test  <- cbind(test_z,  type = test$type)
 > 
-> svm_fit <- svm(
+> # kernlab::ksvm
+> # prob.model=TRUE を付けると確率が取れる
+> svm_fit <- ksvm(
 +   type ~ .,
 +   data = svm_train,
-+   kernel = "radial",
-+   cost = 1,
-+   gamma = 1 / ncol(train_z),
-+   probability = TRUE
++   type = "C-svc",
++   kernel = "rbfdot",
++   C = 1,
++   prob.model = TRUE
 + )
 > 
-> svm_pred <- predict(svm_fit, newdata = svm_test, probability = TRUE)
+> # 予測クラス
+> svm_pred <- predict(svm_fit, newdata = svm_test[, x_cols], type = "response")
 > results$svm <- eval_binary(test$type, svm_pred)
 > 
+> # 確率（ROC/AUC 用）
+> # predict(..., type="probabilities") でクラスごとの確率行列が返る
+> svm_prob_mat <- predict(svm_fit, newdata = svm_test[, x_cols], type = "probabilities")
+> 
+> # 「陽性クラス」を results の定義と合わせる（levels(train$type)[2] を陽性扱い）
+> pos_class <- levels(train$type)[2]
+> svm_prob <- svm_prob_mat[, pos_class]
+> 
 > # ROC/AUC
-> svm_prob <- attr(svm_pred, "probabilities")[, levels(train$type)[2]]
 > svm_roc <- eval_roc(test$type, svm_prob)
 Setting direction: controls > cases
 > results$svm$auc <- svm_roc$auc
@@ -408,15 +418,15 @@ Setting direction: controls > cases
 $confusion
      Pred
 True   No Yes
-  No  197  26
-  Yes  51  58
+  No  198  25
+  Yes  50  59
 
 $metrics
-   accuracy precision    recall        f1
-1 0.7680723 0.6904762 0.5321101 0.6010363
+   accuracy precision    recall       f1
+1 0.7740964  0.702381 0.5412844 0.611399
 
 $auc
-[1] 0.829761
+[1] 0.831818
 
 > 
 > # =========================
@@ -433,7 +443,7 @@ $auc
 1     Logistic 0.8012048 0.7415730 0.6055046 0.6666667 0.8658823
 2    Tree(raw) 0.7319277 0.5980392 0.5596330 0.5781991        NA
 3 Tree(pruned) 0.7560241 0.6590909 0.5321101 0.5888325        NA
-4     SVM(RBF) 0.7680723 0.6904762 0.5321101 0.6010363 0.8297610
+4     SVM(RBF) 0.7740964 0.7023810 0.5412844 0.6113990 0.8318180
 > 
 > # 混同行列を表示
 > results$logistic$confusion
@@ -454,8 +464,8 @@ True   No Yes
 > results$svm$confusion
      Pred
 True   No Yes
-  No  197  26
-  Yes  51  58
+  No  198  25
+  Yes  50  59
 > 
 > # ROC曲線を同じ図に重ねる
 > plot(glm_roc$roc,
