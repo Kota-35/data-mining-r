@@ -1,16 +1,10 @@
-# --- データセットの読み込み ---
-data_root <- path("data", "MovieLens", "raw", "ml-latest-small")
+library(MASS)
 
-ratings <- read.csv(
-  file = path(data_root, "ratings.csv")
-)
-movies <- read.csv(
-  file = path(data_root, "movies.csv")
-)
-tags <- read.csv(
-  file = path(data_root, "tags.csv")
-)
-links <- read.csv(
-  file = path(data_root, "links.csv")
-)
+data("Pima.tr", package = "MASS")
+data("Pima.te", package = "MASS")
 
+train <- Pima.tr
+test  <- Pima.te
+
+?Pima.tr
+?Pima.te
