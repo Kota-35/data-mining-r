@@ -1,4 +1,9 @@
+# --- RStudio ---
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
+
+# --- MovieLens: keep manifest, ignore raw dataset files ---
+data/MovieLens/raw/**
+!data/MovieLens/raw/.gitkeep

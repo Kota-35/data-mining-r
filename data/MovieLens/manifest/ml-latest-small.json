@@ -1,0 +1,21 @@
+{
+  "dataset": "MovieLens",
+  "variant": "ml-latest-small",
+  "url": "https://files.grouplens.org/datasets/movielens/ml-latest-small.zip",
+  "fetched_at": "2026-01-17 15:31:38",
+  "zip": {
+    "path": "data/MovieLens/raw/ml-latest-small.zip",
+    "bytes": 978202,
+    "sha256": "696d65a3dfceac7c45750ad32df2c259311949efec81f0f144fdfb91ebc9e436"
+  },
+  "extracted_root": "data/MovieLens/raw/ml-latest-small",
+  "files": {
+    "csv": ["data/MovieLens/raw/ml-latest-small/links.csv", "data/MovieLens/raw/ml-latest-small/movies.csv", "data/MovieLens/raw/ml-latest-small/ratings.csv", "data/MovieLens/raw/ml-latest-small/tags.csv"],
+    "line_counts": {
+      "links.csv": 9743,
+      "movies.csv": 9743,
+      "ratings.csv": 100837,
+      "tags.csv": 3684
+    }
+  }
+}
