@@ -57,7 +57,7 @@ glove.ngram2 <- glove.ngram[order(glove.ngram$Freq, decreasing = TRUE),]
 print(head(glove.ngram2))
 
 # 共起ネットワークの作成
-glove.ngram2 <- subset(glove.ngram2, Freq >= 3)
+glove.ngram2 <- subset(glove.ngram2, Freq >= 8)
 glove.graph <- graph.data.frame(glove.ngram2)
 plot(
   glove.graph, 
